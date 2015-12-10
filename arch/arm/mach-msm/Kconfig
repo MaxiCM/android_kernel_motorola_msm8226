@@ -2984,6 +2984,13 @@ config MSM_RPC_USB
 	 and FS USB which is connected over the PMIC. This support is
 	 required for MSMs on which the APPS does not have a direct access
 	 to the PMIC.
+	 
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default y
+	help
+	 A simple sysfs interface to force adapters that
+	 are detected as USB to charge as AC.
 
 config MSM_RPC_PMAPP
 	tristate "MSM RPC PMIC APP driver"
