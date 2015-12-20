@@ -411,8 +411,7 @@ static u32 dce6_line_buffer_adjust(struct radeon_device *rdev,
 				   struct drm_display_mode *mode,
 				   struct drm_display_mode *other_mode)
 {
-	u32 tmp, buffer_alloc, i;
-	u32 pipe_offset = radeon_crtc->crtc_id * 0x20;
+	u32 tmp;
 	/*
 	 * Line Buffer Setup
 	 * There are 3 line buffers, each one shared by 2 display controllers.
@@ -427,29 +426,15 @@ static u32 dce6_line_buffer_adjust(struct radeon_device *rdev,
 	 * non-linked crtcs for maximum line buffer allocation.
 	 */
 	if (radeon_crtc->base.enabled && mode) {
-		if (other_mode) {
+		if (other_mode)
 			tmp = 0; /* 1/2 */
-			buffer_alloc = 1;
-		} else {
+		else
 			tmp = 2; /* whole */
-			buffer_alloc = 2;
-		}
-	} else {
+	} else
 		tmp = 0;
-		buffer_alloc = 0;
-	}
 
 	WREG32(DC_LB_MEMORY_SPLIT + radeon_crtc->crtc_offset,
 	       DC_LB_MEMORY_CONFIG(tmp));
-
-	WREG32(PIPE0_DMIF_BUFFER_CONTROL + pipe_offset,
-	       DMIF_BUFFERS_ALLOCATED(buffer_alloc));
-	for (i = 0; i < rdev->usec_timeout; i++) {
-		if (RREG32(PIPE0_DMIF_BUFFER_CONTROL + pipe_offset) &
-		    DMIF_BUFFERS_ALLOCATED_COMPLETED)
-			break;
-		udelay(1);
-	}
 
 	if (radeon_crtc->base.enabled && mode) {
 		switch (tmp) {
@@ -2479,15 +2464,8 @@ static int si_mc_init(struct radeon_device *rdev)
 	rdev->mc.aper_base = pci_resource_start(rdev->pdev, 0);
 	rdev->mc.aper_size = pci_resource_len(rdev->pdev, 0);
 	/* size in MB on si */
-	tmp = RREG32(CONFIG_MEMSIZE);
-	/* some boards may have garbage in the upper 16 bits */
-	if (tmp & 0xffff0000) {
-		DRM_INFO("Probable bad vram size: 0x%08x\n", tmp);
-		if (tmp & 0xffff)
-			tmp &= 0xffff;
-	}
-	rdev->mc.mc_vram_size = tmp * 1024ULL * 1024ULL;
-	rdev->mc.real_vram_size = rdev->mc.mc_vram_size;
+	rdev->mc.mc_vram_size = RREG32(CONFIG_MEMSIZE) * 1024ULL * 1024ULL;
+	rdev->mc.real_vram_size = RREG32(CONFIG_MEMSIZE) * 1024ULL * 1024ULL;
 	rdev->mc.visible_vram_size = rdev->mc.aper_size;
 	si_vram_gtt_location(rdev, &rdev->mc);
 	radeon_update_bandwidth_info(rdev);

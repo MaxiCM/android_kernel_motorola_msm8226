@@ -721,16 +721,17 @@ static int calc_max_buckets(void)
  */
 static int init_hash_tables(struct dm_snapshot *s)
 {
-	sector_t hash_size, cow_dev_size, max_buckets;
+	sector_t hash_size, cow_dev_size, origin_dev_size, max_buckets;
 
 	/*
 	 * Calculate based on the size of the original volume or
 	 * the COW volume...
 	 */
 	cow_dev_size = get_dev_size(s->cow->bdev);
+	origin_dev_size = get_dev_size(s->origin->bdev);
 	max_buckets = calc_max_buckets();
 
-	hash_size = cow_dev_size >> s->store->chunk_shift;
+	hash_size = min(origin_dev_size, cow_dev_size) >> s->store->chunk_shift;
 	hash_size = min(hash_size, max_buckets);
 
 	if (hash_size < 64)
@@ -1845,8 +1846,8 @@ static void snapshot_merge_resume(struct dm_target *ti)
 	start_merge(s);
 }
 
-static void snapshot_status(struct dm_target *ti, status_type_t type,
-			    char *result, unsigned int maxlen)
+static int snapshot_status(struct dm_target *ti, status_type_t type,
+			   char *result, unsigned int maxlen)
 {
 	unsigned sz = 0;
 	struct dm_snapshot *snap = ti->private;
@@ -1892,6 +1893,8 @@ static void snapshot_status(struct dm_target *ti, status_type_t type,
 					  maxlen - sz);
 		break;
 	}
+
+	return 0;
 }
 
 static int snapshot_iterate_devices(struct dm_target *ti,
@@ -2146,8 +2149,8 @@ static void origin_resume(struct dm_target *ti)
 	ti->split_io = get_origin_minimum_chunksize(dev->bdev);
 }
 
-static void origin_status(struct dm_target *ti, status_type_t type, char *result,
-			  unsigned int maxlen)
+static int origin_status(struct dm_target *ti, status_type_t type, char *result,
+			 unsigned int maxlen)
 {
 	struct dm_dev *dev = ti->private;
 
@@ -2160,6 +2163,8 @@ static void origin_status(struct dm_target *ti, status_type_t type, char *result
 		snprintf(result, maxlen, "%s", dev->name);
 		break;
 	}
+
+	return 0;
 }
 
 static int origin_merge(struct dm_target *ti, struct bvec_merge_data *bvm,
