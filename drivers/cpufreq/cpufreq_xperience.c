@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  *
  * Autor: Carlos Jesús B.C (Aka Klozz or TeamMEX@XDA)
- * Based on xperiencev2
+ * Based on smartassv2
  * 
  */
 
@@ -47,7 +47,7 @@ static unsigned int awake_ideal_freq;
  * that practically when sleep_ideal_freq==0 the awake_ideal_freq is used
  * also when suspended).
  */
-#define DEFAULT_SLEEP_IDEAL_FREQ 600000 /*I Think 600mhz are good :D*/
+#define DEFAULT_SLEEP_IDEAL_FREQ 787200 /*I Think 782mhz are good :D*/
 static unsigned int sleep_ideal_freq;
 
 /*
@@ -55,7 +55,7 @@ static unsigned int sleep_ideal_freq;
  * Zero disables and causes to always jump straight to max frequency.
  * When below the ideal freqeuncy we always ramp up to the ideal freq.
  */
-#define DEFAULT_RAMP_UP_STEP 256000
+#define DEFAULT_RAMP_UP_STEP 356000
 static unsigned int ramp_up_step;
 
 /*
@@ -63,33 +63,33 @@ static unsigned int ramp_up_step;
  * Zero disables and will calculate ramp down according to load heuristic.
  * When above the ideal freqeuncy we always ramp down to the ideal freq.
  */
-#define DEFAULT_RAMP_DOWN_STEP 256000
+#define DEFAULT_RAMP_DOWN_STEP 356000
 static unsigned int ramp_down_step;
 
 /*
  * CPU freq will be increased if measured load > max_cpu_load;
  */
-#define DEFAULT_MAX_CPU_LOAD 50
+#define DEFAULT_MAX_CPU_LOAD 60
 static unsigned long max_cpu_load;
 
 /*
  * CPU freq will be decreased if measured load < min_cpu_load;
  */
-#define DEFAULT_MIN_CPU_LOAD 22
+#define DEFAULT_MIN_CPU_LOAD 20
 static unsigned long min_cpu_load;
 
 /*
  * The minimum amount of time to spend at a frequency before we can ramp up.
  * Notice we ignore this when we are below the ideal frequency.
  */
-#define DEFAULT_UP_RATE_US 48000;
+#define DEFAULT_UP_RATE_US 46000;
 static unsigned long up_rate_us;
 
 /*
  * The minimum amount of time to spend at a frequency before we can ramp down.
  * Notice we ignore this when we are above the ideal frequency.
  */
-#define DEFAULT_DOWN_RATE_US 49000;
+#define DEFAULT_DOWN_RATE_US 46000;
 static unsigned long down_rate_us;
 
 /*
@@ -286,8 +286,8 @@ static void cpufreq_xperience_timer(unsigned long cpu)
 	delta_idle = cputime64_sub(now_idle, this_xperience->time_in_idle);
 	delta_time = cputime64_sub(update_time, this_xperience->idle_exit_time);
 
-	// If timer ran less than 1ms after short-term sample started, retry.
-	if (delta_time < 1000) {
+	// If timer ran less than 2ms after short-term sample started, retry.
+	if (delta_time < 2000) {
 		if (!timer_pending(&this_xperience->timer))
 			reset_timer(cpu,this_xperience);
 		return;
@@ -889,4 +889,3 @@ module_exit(cpufreq_xperience_exit);
 MODULE_AUTHOR ("Carlos Jesús B.C (Klozz-TeamMEX)<xxx.reptar.rawrr.xxx@gmail.com>");
 MODULE_DESCRIPTION ("'cpufreq_XPerience' - A smart cpufreq governor");
 MODULE_LICENSE ("GPL");
-
